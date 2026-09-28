@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Raw data is fetched, not committed (see fetch_data.py)
+data/cs-training.csv
+data/*.csv
+
+# Trained artifact is rebuilt by the training run and CI
+models/*.joblib
