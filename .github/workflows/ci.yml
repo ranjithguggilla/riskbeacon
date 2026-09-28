@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest ruff
+      - name: Lint
+        run: ruff check src tests
+      - name: Fetch data
+        run: PYTHONPATH=src python -m riskbeacon.fetch_data
+      - name: Test
+        run: PYTHONPATH=src pytest
+
+  train-and-upload:
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Fetch data
+        run: PYTHONPATH=src python -m riskbeacon.fetch_data
+      - name: Train
+        run: PYTHONPATH=src python -m riskbeacon.train_pipeline
+      - name: Upload model and metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: riskbeacon-model
+          path: |
+            models/riskbeacon.joblib
+            metrics.json
+            assets/*.png
